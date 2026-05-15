@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>豚豚馒馒请和好</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        :root {
+            --pink: #ffd1e1;
+            --light-pink: #fff0f6;
+            --blue: #a0d2eb;
+            --light-blue: #e5f4ff;
+            --dark-pink: #ff8fb8;
+            --dark-blue: #4fa3d1;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            background: url("背景图.jpg") no-repeat center center fixed;
+            background-size: contain;
+            background-color: #ffcce0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .main-title {
+            font-size: 36px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff99cc, #87CEEB, #ff99cc);
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 8px rgba(255, 165, 190, 0.3);
+            font-family: "Arial Rounded MT Bold", "Helvetica Rounded", sans-serif;
+        }
+
+        .btn {
+            display: block;
+            width: 80%;
+            margin: 20px auto;
+            padding: 15px;
+            font-size: 18px;
+            background: linear-gradient(90deg, var(--pink), var(--blue));
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: var(--shadow);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .author-box {
+            text-align: center;
+            color: #ff5f9e;
+            font-size: 17px;
+            line-height: 2.2;
+            font-weight: bold;
+            padding: 20px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .header-item {
+            background: var(--light-pink);
+            padding: 8px 10px;
+            border-radius: 15px;
+            color: var(--dark-pink);
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .header-item.blue {
+            background: var(--light-blue);
+            color: var(--dark-blue);
+        }
+
+        #prop-tip {
+            font-size: 16px;
+            color: #ff4a8e;
+            font-weight: bold;
+            margin: -10px 0 10px 0;
+            display: none;
+        }
+
+        .setting-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .setting-box {
+            background: white;
+            width: 90%; max-width: 400px;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: left;
+        }
+
+        .setting-title {
+            font-size: 20px;
+            color: var(--dark-pink);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .volume-item {
+            margin: 15px 0;
+        }
+
+        .volume-item label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark-blue);
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        .board {
+            display: grid;
+            gap: 3px;
+            background: var(--blue);
+            padding: 8px;
+            border-radius: 10px;
+            aspect-ratio: 1/1;
+            margin: 20px auto;
+        }
+
+        .cell {
+            background: #ffffff;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .cell img {
+            width: 90%;
+            height: 90%;
+            object-fit: cover;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .cell.vanish {
+            animation: vanish 0.4s ease forwards;
+        }
+        @keyframes vanish {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .cell.selected {
+            background: #ffc1d7 !important;
+            border: 2px solid #ff8fb8;
+        }
+
+        .win-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .win-box {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .win-text {
+            font-size: 40px;
+            color: var(--dark-pink);
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .record-box {
+            font-size: 22px;
+            color: var(--dark-blue);
+            margin: 40px 0;
+            line-height: 2;
+        }
+
+        .prop-input {
+            width: 70%;
+            padding: 10px;
+            border: 2px solid var(--pink);
+            border-radius: 10px;
+            font-size: 16px;
+            margin: 10px auto;
+            text-align: center;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="title-page">
+            <h1 class="main-title">豚豚馒馒请和好</h1>
+            <button class="btn" onclick="showModePage()">①启动新游戏</button>
+            <button class="btn" onclick="showRecord()">②过关次数打卡</button>
+            <button class="btn" onclick="showAuthor()">③作者信息</button>
+        </div>
+
+        <div id="mode-page" class="hidden">
+            <h1 class="main-title">选择难度</h1>
+            <button class="btn" onclick="startGame(8,8)">简单模式 8×8</button>
+            <button class="btn" onclick="startGame(11,11)">困难模式 11×11</button>
+            <button class="btn" onclick="startGame(15,15)">难难难模式 15×15</button>
+            <button class="btn" onclick="backToTitle()">返回主页</button>
+        </div>
+
+        <div id="author-page" class="hidden">
+            <h1 class="main-title">作者信息</h1>
+            <div class="author-box">
+                感谢游玩游戏<br>
+                有建议或体验反馈可以来微博找我~<br><br>
+                作者微博：鼠鼠大厨owo<br>
+                画师微博：困豚和馒猪o
+            </div>
+            <button class="btn" onclick="backToTitle()">返回主页</button>
+        </div>
+
+        <div id="game-page" class="hidden">
+            <div class="game-header">
+                <div class="header-item" onclick="openSetting()">⚙️ 设置</div>
+                <div class="header-item">得分: <span id="score">0</span></div>
+                <div class="header-item blue" onclick="useRefresh()">🔄 刷新: <span id="refresh">0</span></div>
+                <div class="header-item blue" onclick="useRemoveProp()">❌ 消除: <span id="remove">0</span></div>
+                <div class="header-item">⏱️ <span id="time">00:00</span></div>
+            </div>
+
+            <div id="prop-tip">请选择相邻的两个相同元素进行消除</div>
+            <input type="text" class="prop-input" placeholder="输入271199领取道具" id="prop-code" oninput="getProps()">
+            <div id="board" class="board"></div>
+            <button class="btn" onclick="backToTitle()">返回主页</button>
+        </div>
+
+        <div id="record-page" class="hidden">
+            <h1 class="main-title">过关次数打卡</h1>
+            <div class="record-box">
+                累计通关次数：<span id="win-count">0</span> 次
+            </div>
+            <button class="btn" onclick="backToTitle()">返回主页</button>
+        </div>
+
+        <div id="setting-modal" class="setting-modal hidden">
+            <div class="setting-box">
+                <h2 class="setting-title">游戏设置</h2>
+                <div class="volume-item">
+                    <label>背景音乐音量</label>
+                    <input type="range" id="bgm-volume" min="0" max="100" value="50">
+                </div>
+                <div class="volume-item">
+                    <label>消除音效音量</label>
+                    <input type="range" id="sfx-volume" min="0" max="100" value="80">
+                </div>
+                <button class="btn" onclick="closeSetting()">确认关闭</button>
+            </div>
+        </div>
+
+        <div id="win-modal" class="win-modal hidden">
+            <div class="win-box">
+                <div class="win-text">恭喜通关</div>
+                <button class="btn" onclick="backToTitle()">①回到标题</button>
+                <button class="btn" onclick="showModePage()">②再来一局</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let board = [];
+        let ROWS = 8, COLS = 8;
+        const ELEMENTS = ['1.png', '2.png', '3.png', '4.png', '5.png'];
+        
+        let score = 0;
+        let combo = 0;
+        let time = 0;
+        let timer = null;
+        let refreshProps = 0;
+        let removeProps = 0;
+        let selectedCell = null;
+        let isSettingOpen = false;
+        let isUsingRemove = false;
+        let winCount = localStorage.getItem('winCount') || 0;
+
+        // ✅ 已修改为你本地的音乐文件名
+        const bgm = new Audio("背景音乐.mp3");
+        bgm.loop = true;
+        const sfx = new Audio("音效.mp3");
+
+        window.onload = function() {
+            document.getElementById('win-count').innerText = winCount;
+        };
+
+        function backToTitle() {
+            clearInterval(timer);
+            document.getElementById('title-page').classList.remove('hidden');
+            document.getElementById('game-page').classList.add('hidden');
+            document.getElementById('record-page').classList.add('hidden');
+            document.getElementById('mode-page').classList.add('hidden');
+            document.getElementById('author-page').classList.add('hidden');
+            document.getElementById('win-modal').classList.add('hidden');
+            closeSetting();
+        }
+
+        function showModePage() {
+            document.getElementById('title-page').classList.add('hidden');
+            document.getElementById('mode-page').classList.remove('hidden');
+        }
+
+        function showAuthor() {
+            document.getElementById('title-page').classList.add('hidden');
+            document.getElementById('author-page').classList.remove('hidden');
+        }
+
+        function startGame(r, c) {
+            ROWS = r;
+            COLS = c;
+            document.getElementById('mode-page').classList.add('hidden');
+            document.getElementById('game-page').classList.remove('hidden');
+            score = 0; combo = 0; time = 0;
+            selectedCell = null; isUsingRemove = false;
+            updateUI();
+            initBoard();
+            startTimer();
+            document.getElementById('prop-tip').style.display = 'none';
+            bgm.volume = 0.5;
+            bgm.play();
+        }
+
+        function initBoard() {
+            board = [];
+            for (let i = 0; i < ROWS; i++) {
+                board[i] = [];
+                for (let j = 0; j < COLS; j++) {
+                    let val;
+                    do {
+                        val = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+                        board[i][j] = val;
+                    } while (hasMatch(i, j));
+                }
+            }
+            renderBoard();
+        }
+
+        function hasMatch(i, j) {
+            let val = board[i][j];
+            if (j >= 2 && board[i][j-1] === val && board[i][j-2] === val) return true;
+            if (i >= 2 && board[i-1][j] === val && board[i-2][j] === val) return true;
+            return false;
+        }
+
+        function renderBoard() {
+            let el = document.getElementById('board');
+            el.innerHTML = '';
+            el.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+            el.style.gridTemplateRows = `repeat(${ROWS}, 1fr)`;
+            
+            for (let i = 0; i < ROWS; i++) {
+                for (let j = 0; j < COLS; j++) {
+                    let c = document.createElement('div');
+                    c.classList.add('cell');
+                    c.dataset.i = i;
+                    c.dataset.j = j;
+                    c.innerHTML = `<img src="${board[i][j]}" style="width:90%; height:90%; object-fit:cover;">`;
+                    c.onclick = () => handleCellClick(i, j);
+                    el.appendChild(c);
+                }
+            }
+        }
+
+        function useRemoveProp() {
+            if (removeProps <= 0 || isSettingOpen) return;
+            isUsingRemove = true; selectedCell = null;
+            document.getElementById('prop-tip').style.display = 'block';
+        }
+
+        function handleCellClick(i, j) {
+            if (isSettingOpen) return;
+            if (isUsingRemove) { useRemove(i,j); return; }
+            normalClick(i,j);
+        }
+
+        function normalClick(i, j) {
+            let cell = document.querySelector(`[data-i="${i}"][data-j="${j}"]`);
+            if (!selectedCell) {
+                selectedCell = { i, j }; cell.classList.add('selected');
+            } else {
+                let si = selectedCell.i, sj = selectedCell.j;
+                document.querySelector(`[data-i="${si}"][data-j="${sj}"]`).classList.remove('selected');
+                if (Math.abs(i - si) + Math.abs(j - sj) === 1) {
+                    swapCells(si, sj, i, j);
+                    let matched = checkAndRemove();
+                    if (!matched) swapCells(si, sj, i, j);
+                    else combo++;
+                }
+                selectedCell = null;
+            }
+        }
+
+        function useRemove(i, j) {
+            let cell = document.querySelector(`[data-i="${i}"][data-j="${j}"]`);
+            if (!selectedCell) {
+                selectedCell = { i, j }; cell.classList.add('selected');
+            } else {
+                let si = selectedCell.i, sj = selectedCell.j;
+                document.querySelector(`[data-i="${si}"][data-j="${sj}"]`).classList.remove('selected');
+                if (Math.abs(i - si) + Math.abs(j - sj) === 1 && board[i][j] === board[si][sj]) {
+                    board[i][j] = null; board[si][sj] = null;
+                    removeProps--; updateUI(); processRemove();
+                }
+                selectedCell = null; isUsingRemove = false;
+                document.getElementById('prop-tip').style.display = 'none';
+            }
+        }
+
+        function swapCells(i1,j1,i2,j2) {
+            [board[i1][j1], board[i2][j2]] = [board[i2][j2], board[i1][j1]];
+            renderBoard();
+        }
+
+        function checkAndRemove() {
+            let toRemove = new Set();
+            for (let i=0; i<ROWS; i++){
+                for(let j=0; j<COLS; j++){
+                    let v = board[i][j]; if(!v)continue;
+                    if(j<=COLS-3 && v===board[i][j+1]&&v===board[i][j+2]){
+                        toRemove.add(`${i},${j}`); toRemove.add(`${i},${j+1}`); toRemove.add(`${i},${j+2}`);
+                    }
+                    if(i<=ROWS-3 && v===board[i+1][j]&&v===board[i+2][j]){
+                        toRemove.add(`${i},${j}`); toRemove.add(`${i+1},${j}`); toRemove.add(`${i+2},${j}`);
+                    }
+                }
+            }
+            if(toRemove.size===0)return false;
+            addScore(toRemove.size);
+            playRemoveAnimation(toRemove);
+            return true;
+        }
+
+        function playRemoveAnimation(toRemove) {
+            toRemove.forEach(p => {
+                let [x, y] = p.split(',');
+                let cell = document.querySelector(`[data-i="${x}"][data-j="${y}"]`);
+                cell.classList.add('vanish');
+            });
+            sfx.volume = 0.8; sfx.currentTime = 0; sfx.play();
+            setTimeout(() => {
+                toRemove.forEach(p => {
+                    let [x, y] = p.split(',');
+                    board[x][y] = null;
+                });
+                processRemove();
+            }, 400);
+        }
+
+        function processRemove() {
+            setTimeout(()=>{
+                for(let j = 0; j < COLS; j++){
+                    let col = [];
+                    for(let i = ROWS - 1; i >= 0; i--){
+                        if(board[i][j]) col.push(board[i][j]);
+                    }
+                    for(let i = 0; i < ROWS; i++) board[i][j] = null;
+                    let idx = 0;
+                    for(let i = ROWS - 1; i >= 0 && idx < col.length; i--){
+                        board[i][j] = col[idx++];
+                    }
+                    for(let i = 0; i < ROWS; i++){
+                        if(!board[i][j]){
+                            board[i][j] = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+                        }
+                    }
+                }
+                renderBoard();
+                setTimeout(()=>checkAndRemove(),300);
+                checkWin();
+            },300);
+        }
+
+        function addScore(n){
+            let add=10;
+            if(n===4)add=25; else if(n===5)add=45; else if(n>=6)add=35;
+            if(combo===2)add=Math.floor(add*1.2);
+            else if(combo===3)add=Math.floor(add*1.5);
+            else if(combo>=4)add=Math.floor(add*2);
+            score+=add; updateUI();
+        }
+
+        function checkWin(){
+            if(score>=2711){
+                clearInterval(timer);
+                winCount++; localStorage.setItem('winCount',winCount);
+                document.getElementById('win-modal').classList.remove('hidden');
+            }
+        }
+
+        function startTimer(){
+            clearInterval(timer);
+            timer=setInterval(()=>{
+                if(!isSettingOpen){
+                    time++;
+                    let m=String(Math.floor(time/60)).padStart(2,'0');
+                    let s=String(time%60).padStart(2,'0');
+                    document.getElementById('time').innerText=m+':'+s;
+                }
+            },1000);
+        }
+
+        function updateUI(){
+            document.getElementById('score').innerText=score;
+            document.getElementById('refresh').innerText=refreshProps;
+            document.getElementById('remove').innerText=removeProps;
+        }
+
+        function openSetting(){isSettingOpen=true;document.getElementById('setting-modal').classList.remove('hidden');}
+        function closeSetting(){isSettingOpen=false;document.getElementById('setting-modal').classList.add('hidden');}
+        function useRefresh(){if(refreshProps<=0||isSettingOpen)return; refreshProps--; initBoard(); updateUI();}
+        function getProps(){if(document.getElementById('prop-code').value==='271199'){refreshProps++;removeProps++;updateUI();document.getElementById('prop-code').value='';alert('道具领取成功！');}}
+        function showRecord(){document.getElementById('title-page').classList.add('hidden');document.getElementById('record-page').classList.remove('hidden');document.getElementById('win-count').innerText=winCount;}
+    </script>
+</body>
+</html>
